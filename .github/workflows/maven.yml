@@ -45,6 +45,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
           snyk test --all-projects --json > snyk-results.json
+
           cat <<EOF > snyk-filter.yml
           fail:
             - cvssScore:
@@ -52,9 +53,6 @@ jobs:
           display:
             - all
           EOF
+
           snyk-filter -i snyk-results.json -f snyk-filter.yml
 
-      - name: Monitor project in Snyk (para dashboard)
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: snyk monitor --all-projects
