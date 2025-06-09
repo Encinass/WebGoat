@@ -14,15 +14,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 23
+      - name: Set up JDK 17 (compatível com Snyk container)
         id: setup-java
         uses: actions/setup-java@v4
         with:
-          java-version: '23'
+          java-version: '17'
           distribution: 'temurin'
           cache: maven
 
-      - name: Build with Maven
+      - name: Build with Maven (ignore failures)
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
         run: mvn clean install -fn
@@ -31,4 +31,3 @@ jobs:
         uses: snyk/actions/maven@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-          JAVA_HOME: ${{ steps.setup-java.outputs.path }}
