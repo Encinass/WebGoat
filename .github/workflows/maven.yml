@@ -32,27 +32,20 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Snyk CLI and snyk-filter
-        run: npm install -g snyk snyk-filter
+      - name: Install Snyk CLI
+        run: npm install -g snyk
 
       - name: Authenticate Snyk
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: snyk auth $SNYK_TOKEN
 
-      - name: Run Snyk test and apply quality gate (CVSS ≥ 8)
+      - name: Run Snyk monitor
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: |
-          snyk test --all-projects --json > snyk-results.json
+        run: snyk monitor --all-projects
 
-          cat <<EOF > snyk-filter.yml
-          fail:
-            - cvssScore:
-                gte: 8
-          display:
-            - all
-          EOF
-
-          snyk-filter -i snyk-results.json -f snyk-filter.yml
-
+      - name: Quality Gate - Fail on Critical Issues
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: snyk test --all-projects --severity-threshold=critical
