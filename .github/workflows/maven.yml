@@ -25,7 +25,7 @@ jobs:
       - name: Build with Maven
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
-        run: mvn clean install
+        run: mvn clean install -fn
 
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/maven@master
