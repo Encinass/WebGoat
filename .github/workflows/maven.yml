@@ -2,9 +2,9 @@ name: Java CI with Maven and Snyk
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build-and-scan:
@@ -27,11 +27,29 @@ jobs:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
         run: mvn clean install -fn
 
-      - name: Install Snyk CLI
-        run: npm install -g snyk
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Snyk CLI and snyk-filter
+        run: npm install -g snyk snyk-filter
 
       - name: Authenticate Snyk
-        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: snyk auth $SNYK_TOKEN
 
-      - name: Run Snyk test
-        run: snyk monitor
+      - name: Run Snyk monitor and apply quality gate (CVSS ≥ 8)
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          snyk monitor --all-projects --json > snyk-monitor-results.json
+          cat <<EOF > snyk-filter.yml
+          fail:
+            - cvssScore:
+                gte: 8
+          display:
+            - all
+          EOF
+          snyk-filter -i snyk-monitor-results.json -f snyk-filter.yml
